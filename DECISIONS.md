@@ -19,7 +19,8 @@
 
 ### D-004. 배포 타깃과 렌더링 모드
 - **결정:** v1에서는 **표준 Next.js(App Router) SSR/RSC** 유지. `output: 'export'` 정적 내보내기는 채택하지 않음.
-- **이유:** 예약/관리자 인터랙션과 추후 Supabase Server Actions를 위해 서버 기능이 필요. Cloudflare Pages는 `@cloudflare/next-on-pages`로 SSR 지원. 배포 어댑터는 Supabase 연동 단계에서 확정.
+- **이유:** 예약/관리자 인터랙션과 추후 Supabase Server Actions를 위해 서버 기능이 필요.
+- **갱신(D-022 참조):** 배포 어댑터를 **Cloudflare Workers + OpenNext(`@opennextjs/cloudflare`)** 로 확정.
 
 ### D-005. 데이터 소스
 - **결정:** Supabase 연동 전까지 **더미 데이터**를 `src/lib/dummy-data.ts` 및 `src/constants`에 정의하고 Service Layer 인터페이스를 통해 주입.
@@ -82,6 +83,12 @@
 ### D-021. 데이터 접근 경로 (constants/programs shim)
 - **결정:** 클라이언트 컴포넌트의 동기 import 를 위해 `constants/programs.ts`는 `lib/mock/programs.mock`을 재export하는 shim 유지. 서버는 `program.service` 사용 권장.
 - **이유:** 클라이언트에서 async 서비스 호출은 부적합 → 정적 프로그램 데이터는 동기 import 허용.
+
+### D-022. Cloudflare 배포 방식 — Workers + OpenNext
+- **결정:** **`@opennextjs/cloudflare`(Cloudflare Workers)** 로 배포. Cloudflare Pages 정적 배포 및 `output:'export'` **금지**. `@cloudflare/next-on-pages`(Pages)는 deprecated라 미채택.
+- **구성:** `open-next.config.ts`, `wrangler.jsonc`(`main=.open-next/worker.js`, `assets=.open-next/assets`, `nodejs_compat`), `next.config`의 `initOpenNextCloudflareForDev()`, scripts(`cf:build`/`preview`/`deploy`).
+- **이유:** SSR(서버 액션 + 동적 라우트) 앱이라 정적 배포 시 `/_next/static/*` 404 → 무스타일. OpenNext가 공식 권장 경로이며 `pnpm preview`(workerd)로 CSS 서빙·라우트 200 검증 완료.
+- **비고:** 기존 Pages 정적 프로젝트가 옛 `index.html` 노출 → 중단/삭제 필요. (DEPLOYMENT.md)
 
 ### D-017. GitHub 백업 정책 (사용자 요청)
 - **결정:** 기능 단위/30분 이상 작업/빌드 성공 시 커밋, 푸시 순서는 `typecheck → build → git add → commit → push`. 커밋 메시지는 Conventional Commits(`feat:`/`fix:`/`refactor:` 등).

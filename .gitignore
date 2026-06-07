@@ -9,6 +9,12 @@
 /out/
 next-env.d.ts
 
+# cloudflare / opennext build output
+/.open-next/
+/.vercel/
+/.wrangler/
+cloudflare-env.d.ts
+
 # production
 /build
 

@@ -52,17 +52,15 @@
 - [x] Supabase client 스텁 + .env.example 정리
 - [x] DB 스키마 SQL(보강) + seed.sql + RLS 초안 + SUPABASE_SETUP_GUIDE.md
 
-## Cloudflare Pages 배포 (대시보드 접근 필요) ☁️
-> 현재 앱은 SSR(서버 액션 + 동적 라우트) → 정적(`output: 'export'`) 배포 불가.
-> Cloudflare Pages 는 `@cloudflare/next-on-pages` 어댑터로 배포해야 함.
-- [ ] `pnpm add -D @cloudflare/next-on-pages` + `wrangler`
-- [ ] CF Pages 프로젝트 설정:
-      - Build command: `npx @cloudflare/next-on-pages@1`
-      - Output directory: `.vercel/output/static`
-      - 환경변수: NEXT_PUBLIC_* 등 등록
-- [ ] `wrangler.toml` 또는 대시보드에서 `compatibility_flags = ["nodejs_compat"]`, compatibility_date 설정
-- [ ] (확인 필요) 현재 CF Pages 빌드/출력 설정이 정적 프리셋이면 실패/오배포 → 위 설정으로 교정
-- [ ] Deployments 로그 / pages.dev vs 도메인 / 캐시 무효화 → CF 대시보드에서 확인 (로컬 환경에 CF API 토큰 없음)
+## Cloudflare 배포 — Workers + OpenNext ☁️ (코드 구성 완료, 대시보드 작업 남음)
+> SSR 앱이라 정적 배포 불가 → `@opennextjs/cloudflare`(Workers)로 전환 완료. 상세: DEPLOYMENT.md
+- [x] `@opennextjs/cloudflare` + `wrangler` 설치
+- [x] `open-next.config.ts` / `wrangler.jsonc`(nodejs_compat) / `next.config` dev 통합
+- [x] scripts `cf:build`/`preview`/`deploy` + `cf:build`·`preview` 로컬 검증(CSS 서빙 OK)
+- [ ] **CF 대시보드 작업(계정 필요)**: Workers→Connect to Git, Build `pnpm cf:build` / Deploy `npx wrangler deploy`
+- [ ] 환경변수(NEXT_PUBLIC_*) 등록 후 첫 배포 → `*.workers.dev` 확인
+- [ ] **기존 Pages 정적 프로젝트 중단/삭제**(옛 index.html 출처) + 커스텀 도메인 새 Worker 로 이전
+- [ ] 배포 후 강력 새로고침 / 필요 시 CF 캐시 Purge
 
 ## 실제 Supabase 연결 시 작업 (URL/Key 확보 후) 🔌
 - [ ] Supabase 프로젝트 생성, .env.local 설정

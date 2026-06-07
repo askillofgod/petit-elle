@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "petit-elle",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-25",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+  // 환경변수(NEXT_PUBLIC_* 등)는 Cloudflare 대시보드 또는 `vars` / Secrets 로 주입.
+  // Supabase 연동 시 추가 예정 (현재 Mock 기반).
+}

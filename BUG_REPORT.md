@@ -1,5 +1,57 @@
 # BUG_REPORT.md — Petit Elle 전체 검수 보고서
 
+---
+
+# 🔥 긴급 점검 (2026-06-07) — "CSS/Tailwind 전체 미적용" 신고 분석
+
+## 결론: 로컬 코드는 정상. 원인은 **Cloudflare 배포 구성**.
+
+### 1) 로컬 검증 — 정상 (코드 수정 불필요)
+신고 증상(기본 브라우저 스타일, 파란 링크, Tailwind 전무)을 로컬에서 정밀 검증한 결과 **로컬은 완전 정상**:
+- `src/app/layout.tsx` → `import "./globals.css";` 루트 레이아웃에 정상 위치 ✅
+- `src/app/globals.css` 위치/내용 정상, `postcss.config.mjs`(tailwindcss+autoprefixer) 정상 ✅
+- `tailwind.config.ts` content 경로(app/components/features) 정상 ✅
+- `rm -rf .next && pnpm build` → CSS 청크 생성: `.next/static/css/adbcafc6bd772c99.css` (29.9KB)
+  - 포함 확인: `.bg-gold{...rgb(184 141 122)}`, pill `9999px`, gold `#b88d7a`, preflight `border-box` ✅
+- dev 서버: HTML에 `<link rel="stylesheet" href="/_next/static/css/app/layout.css">` 존재, 해당 CSS **200 / 43KB** 로드 ✅
+- **헤드리스 스크린샷(/, /programs)**: 골드 pill 버튼·헤더·serif 타이틀·카드 radius/shadow·풀블리드 Hero 모두 정상 렌더, 링크 파란색 아님 ✅
+
+→ **localhost:8080 의 CSS/Tailwind 는 문제 없음.**
+
+### 2) 진짜 원인 — Cloudflare Pages 가 SSR 빌드를 정적으로 서빙
+이 앱은 **Server Actions + 동적 라우트**를 쓰는 **SSR 앱**(`output:'export'` 아님, 산출물 `.next`).
+CF Pages 를 정적 프리셋(예: 출력 디렉터리 `.next`/`out`)으로 배포하면:
+- 페이지 HTML 은 `/_next/static/css/...` 를 참조하지만, 정적 서빙 경로 매핑이 어긋나 **CSS 가 404** → 페이지가 무스타일로 노출 (= 신고 증상과 정확히 일치).
+- 프로젝트에 CF 어댑터 구성(`@cloudflare/next-on-pages`, `wrangler.toml`, `_routes.json`)이 **전무**했음.
+
+### 3) 수정 — Cloudflare Workers + OpenNext 배포로 전환 (검증 완료)
+> 최초에 `@cloudflare/next-on-pages`(Pages)로 구성해 검증했으나, 해당 패키지가 **deprecated**이고
+> 사용자 지침에 따라 **공식 권장 `@opennextjs/cloudflare`(Workers)** 방식으로 최종 전환.
+
+- `@opennextjs/cloudflare` + `wrangler` 설치, `pnpm-workspace.yaml` allowBuilds(esbuild/workerd) 승인.
+- `open-next.config.ts`(`defineCloudflareConfig`), `wrangler.jsonc`(`main=.open-next/worker.js`,
+  `assets=.open-next/assets`, `nodejs_compat`+`global_fetch_strictly_public`), `next.config.mjs`에
+  `initOpenNextCloudflareForDev()` 추가.
+- `package.json` 스크립트: `cf:build` / `preview` / `deploy` / `cf-typegen`. `.gitignore`에 `.open-next` 등 추가.
+- **`pnpm cf:build` 성공** → 산출물 검증:
+  - `.open-next/worker.js` 생성 ✅
+  - `.open-next/assets/_next/static/css/adbcafc6bd772c99.css`(+`bg-gold` 포함) ✅
+- **`pnpm preview`(workerd, 프로덕션 동등) 검증**:
+  - `/`,`/programs`,`/reservation`,`/admin`,`/admin/reservations` 모두 **200** ✅
+  - 워커가 CSS 를 `/_next/static/css/*.css` 로 **200(29.9KB, bg-gold 포함)** 서빙 ✅
+  - 헤드리스 스크린샷: 골드 버튼·헤더·Hero 풀블리드 등 **완전 정상 렌더** ✅
+
+### 4) Cloudflare 대시보드에서 적용할 설정 (배포 측 작업) — `DEPLOYMENT.md` 참고
+- **방식 A (권장)**: Workers & Pages → Workers → Connect to Git → Build `pnpm cf:build`, Deploy `npx wrangler deploy`
+- **방식 B**: `npx wrangler login && pnpm deploy`
+- **기존 Pages 정적 프로젝트는 중단/삭제** (옛 index.html 출처). 커스텀 도메인을 새 Worker 로 이전.
+- ⚠️ 본 환경엔 CF 계정/토큰이 없어 실제 배포·도메인 전환·캐시 Purge 는 사용자 측에서 진행.
+
+### 검증 상태
+- typecheck 0 / ESLint 0 / `next build` 성공 / **`cf:build`(OpenNext) 성공** / **`preview`(워커) CSS 서빙 + 라우트 200 + 스크린샷 정상**.
+
+---
+
 - 작성일: 2026-06-07
 - 검수 범위: 전체 페이지/링크/타입/ESLint/빌드/모바일 반응형/예약 플로우/관리자/미사용 코드/SEO
 - 검수 방법: 라우트 HTTP 점검(29개), `tsc --noEmit`, `next lint`, `next build`, Chrome DevTools Protocol(CDP) 기반 실측 + 스크린샷, 정적 참조 분석

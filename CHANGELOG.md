@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+### Cloudflare 배포 전환 (OpenNext) — 2026-06-07 (4차 세션)
+#### 분석
+- 신고된 "CSS/Tailwind 전체 미적용"은 **로컬 정상**, **Cloudflare 정적 배포 오구성**이 원인 (BUG_REPORT 참고).
+- 기존 Pages 정적 프로젝트가 옛 `index.html`/무스타일 노출.
+#### Added
+- **Cloudflare Workers + OpenNext 배포 구성**: `@opennextjs/cloudflare`, `open-next.config.ts`, `wrangler.jsonc`(nodejs_compat)
+- `package.json`: `cf:build`/`preview`/`deploy`/`cf-typegen` 스크립트
+- `next.config.mjs`: `initOpenNextCloudflareForDev()`
+- **DEPLOYMENT.md** (정적 배포 불가 이유, 명령어, 대시보드 설정, 도메인 전환, 옛 index.html 원인)
+#### Verified
+- typecheck 0 / lint 0 / `next build` 성공
+- `pnpm cf:build` → `.open-next/worker.js` + assets/_next/static/css(bg-gold) 생성
+- `pnpm preview`(workerd) → 라우트 200 + CSS 200 서빙 + 스크린샷 정상 렌더
+
 ### Mock 기반 V1 고도화 — 2026-06-07 (3차 세션)
 #### Added
 - **Service Layer 6종**: `program`/`reservation`/`customer`/`admin`/`slot`/`settings` (Mock 반환, Supabase 시그니처 설계)
