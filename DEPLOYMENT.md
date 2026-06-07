@@ -5,14 +5,18 @@
 → **Cloudflare Pages 정적 배포(out / 단순 .next)로는 배포 불가.**
 → **`@opennextjs/cloudflare` 로 Cloudflare Workers 에 배포**합니다.
 
-### 최종 배포 전략 (확정)
+### 최종 배포 전략 — **A안 확정 (2026-06-07)**
+> 근거·대안 비교는 `CLOUDFLARE_REALITY_CHECK.md`. 사용자 결정으로 **A안(Workers)** 확정.
 - **플랫폼: Cloudflare Workers + OpenNext** (SSR 유지 — Server Actions·동적 라우트·관리자·예약 구조 그대로).
 - **최종 주소: 무료 `*.workers.dev`** → Worker 이름이 `petit-elle` 이므로
-  **`https://petit-elle.<계정-서브도메인>.workers.dev`**.
-  (`<계정-서브도메인>` 은 Cloudflare 계정마다 1개 — 대시보드 Workers & Pages 첫 진입 시 설정/확인.)
+  **`https://petit-elle.<계정명>.workers.dev`**.
+  (`<계정명>` = 계정 서브도메인. Cloudflare 계정마다 1개 — 대시보드 Workers & Pages 첫 진입 시 설정/확인.)
 - **유료 커스텀 도메인은 구매하지 않음.** workers.dev 주소를 그대로 운영 주소로 사용.
-- **기존 `petit-elle.pages.dev` (옛 Pages 정적 프로젝트) 는 중단/삭제 대상.**
-  정적 export 로 후퇴하지 않으며, pages.dev 주소 유지를 위해 기능을 깎지 않는다.
+- **`petit-elle.pages.dev` 주소는 포기.** (Pages URL 보존을 위한 next-on-pages 회귀는 하지 않는다.)
+- **기존 Pages 프로젝트 `petit-elle.pages.dev` 는 "삭제"가 아니라 우선 "Git 연동 해제" 대상.**
+  → push 마다 도는 깨진 자동배포만 먼저 멈춘다. 삭제는 나중에 사용자가 선택.
+- 금지 사항: `output: 'export'` 추가 금지, `@cloudflare/next-on-pages` 회귀 금지.
+  (정적화/엣지회귀 시 Server Actions·동적 라우트·관리자·예약 기능이 깨진다.)
 
 ---
 
@@ -32,10 +36,11 @@
   기존 Cloudflare **Pages** 프로젝트(`petit-elle.pages.dev`)가 **정적 프리셋**으로 그 시점의
   산출물(또는 빈 정적 루트의 `index.html`)을 캐시/서빙 중이기 때문이다.
 - Pages 프로젝트는 SSR 산출물을 실행할 수 없어 최신 앱이 반영되지 않는다.
-- **해결: 정적 Pages 배포(`petit-elle.pages.dev`)를 중단/삭제하고 아래 Workers(OpenNext)
-  배포로 전환**한다. 새 운영 주소는 `petit-elle.<계정-서브도메인>.workers.dev`.
-- ⚠️ `petit-elle.pages.dev` 주소를 살리려고 정적 export 로 되돌리지 않는다.
-  (정적화하면 Server Actions·동적 라우트·관리자·예약 기능이 깨진다.)
+- **해결(A안): 그 Pages 프로젝트의 Git 연동을 먼저 끊어** 깨진 자동배포를 멈추고,
+  앱은 **Workers(OpenNext)** 로 배포한다. 새 운영 주소는 `petit-elle.<계정명>.workers.dev`.
+  (Pages 프로젝트 자체는 남겨도 됨 — 삭제는 나중에 선택. 상세 절차: `CLOUDFLARE_ACTION_PLAN.md`.)
+- ⚠️ `petit-elle.pages.dev` 주소를 살리려고 정적 export / next-on-pages 로 되돌리지 않는다.
+  (정적화·엣지회귀하면 Server Actions·동적 라우트·관리자·예약 기능이 깨진다.)
 
 ---
 
@@ -80,6 +85,9 @@ pnpm cf-typegen
 ## 4. Cloudflare 대시보드 설정
 
 ### 방식 A — Git 연동 (권장, Workers Builds)
+> 클릭 단위 상세 순서는 `CLOUDFLARE_ACTION_PLAN.md` 참고. 아래는 요약.
+0. **(선결) 기존 Pages 프로젝트 `petit-elle` 의 Git 연동 해제** — 같은 repo 가 Workers·Pages
+   양쪽에서 동시 빌드되는 것을 막는다. (삭제 아님)
 1. Cloudflare 대시보드 → **Workers & Pages → Create → Workers → Connect to Git**
 2. 저장소 `askillofgod/petit-elle`, 브랜치 `main` 선택
 3. Build 설정:
@@ -88,7 +96,7 @@ pnpm cf-typegen
    - (Wrangler 가 `wrangler.jsonc` 를 읽어 `main`/`assets`/compat flags 적용)
 4. **Settings → Variables**: `NEXT_PUBLIC_SITE_URL` 등 환경변수 등록
    (현재 Mock 기반이라 Supabase 키 없이도 동작)
-5. 저장 후 첫 배포 실행 → `*.workers.dev` 주소 확인
+5. 저장 후 첫 배포 실행 → **`https://petit-elle.<계정명>.workers.dev`** 주소 확인
 
 ### 방식 B — 로컬/CI 에서 직접 배포
 ```bash
@@ -110,15 +118,16 @@ pnpm deploy
 
 ---
 
-## 6. 최종 주소 확정 체크리스트 (workers.dev — 유료 도메인 없음)
-- [ ] 새 Worker 배포 성공 → **`petit-elle.<계정-서브도메인>.workers.dev`** 접속 확인
-- [ ] 기존 Cloudflare **Pages** 프로젝트 `petit-elle.pages.dev` **사용 중단/삭제** (옛 index.html 출처)
+## 6. 최종 주소 확정 체크리스트 (A안 — workers.dev, 유료 도메인 없음)
+- [ ] 기존 Cloudflare **Pages** 프로젝트 `petit-elle` **Git 연동 해제** (삭제 아님 — 깨진 자동배포 중단)
+- [ ] 새 Worker 배포 성공 → **`https://petit-elle.<계정명>.workers.dev`** 접속 확인
 - [ ] 배포 후 강력 새로고침 / 필요 시 CF 캐시 Purge
 - [ ] (확정된 workers.dev 주소로) `src/constants/site.ts` 의 `url` 및 OG/canonical 점검
   — SEO 메타가 실제 운영 주소와 일치하도록 (선택, 운영 중요도 낮음)
+- [ ] (나중에 선택) 더 이상 필요 없으면 Pages 프로젝트 삭제
 
 > 유료 커스텀 도메인은 구매하지 않으므로 "도메인 연결" 단계는 없다.
-> workers.dev 주소가 곧 최종 운영 주소다.
+> workers.dev 주소가 곧 최종 운영 주소다. `petit-elle.pages.dev` 주소는 포기한다.
 
 ---
 

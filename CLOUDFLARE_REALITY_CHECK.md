@@ -6,6 +6,20 @@
 
 ---
 
+## ✅ 최종 결정 — **A안 확정 (2026-06-07, 사용자 결정)**
+
+- **선택: 갈래 A — Cloudflare Workers + OpenNext**, 무료 **`https://petit-elle.<계정명>.workers.dev`**.
+- **`petit-elle.pages.dev` 주소는 포기**한다. (B안/next-on-pages 회귀 안 함.)
+- 기존 Pages 프로젝트는 **삭제가 아니라 우선 "Git 연동 해제"** 로 정리 → 깨진 자동배포만 멈춘다.
+  삭제는 나중에 사용자가 선택.
+- **금지:** `output: 'export'` 추가, `@cloudflare/next-on-pages` 회귀, SSR 구조 훼손.
+- **실행 순서(클릭 단위):** → `CLOUDFLARE_ACTION_PLAN.md`
+  (이 문서는 "왜 A안인가"의 근거 기록용. 실행은 ACTION_PLAN 을 따른다.)
+
+아래 §1~§9 는 그 결정의 **근거**다(원본 유지).
+
+---
+
 ## 0. 점검 방식 — 무엇을 확인할 수 있고, 무엇은 확인 불가한가
 
 | 구분 | 확인 가능 여부 | 근거 |
