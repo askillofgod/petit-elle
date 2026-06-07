@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Pencil, Loader2 } from "lucide-react";
+import { Pencil, Loader2, Search } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
@@ -27,13 +27,32 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "name", label: "이름순" },
 ];
 
+type StatusKey = "ALL" | "active" | "hidden";
+const STATUSES: { key: StatusKey; label: string }[] = [
+  { key: "ALL", label: "전체" },
+  { key: "active", label: "노출중" },
+  { key: "hidden", label: "숨김" },
+];
+
 export function AdminProgramsManager({ initial }: { initial: Program[] }) {
   const router = useRouter();
   const [programs, setPrograms] = useState(initial);
   const [sort, setSort] = useState<SortKey>("order");
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusKey>("ALL");
 
   const sortedPrograms = useMemo(() => {
-    const arr = [...programs];
+    const q = query.trim().toLowerCase();
+    const arr = programs.filter((p) => {
+      const matchQuery = !q || p.title.toLowerCase().includes(q);
+      const matchStatus =
+        statusFilter === "ALL"
+          ? true
+          : statusFilter === "active"
+          ? p.isActive
+          : !p.isActive;
+      return matchQuery && matchStatus;
+    });
     arr.sort((a, b) => {
       if (sort === "priceAsc") return a.price - b.price;
       if (sort === "priceDesc") return b.price - a.price;
@@ -41,7 +60,7 @@ export function AdminProgramsManager({ initial }: { initial: Program[] }) {
       return a.displayOrder - b.displayOrder;
     });
     return arr;
-  }, [programs, sort]);
+  }, [programs, sort, query, statusFilter]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormValues>(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -107,6 +126,15 @@ export function AdminProgramsManager({ initial }: { initial: Program[] }) {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       {/* List */}
       <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="프로그램명 검색"
+            className="h-10 pl-10"
+          />
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted">정렬</span>
           {SORTS.map((s) => (
@@ -125,6 +153,32 @@ export function AdminProgramsManager({ initial }: { initial: Program[] }) {
             </button>
           ))}
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-muted">상태</span>
+          {STATUSES.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => setStatusFilter(s.key)}
+              className={cn(
+                "rounded-pill px-3 py-1.5 text-xs font-medium transition-colors",
+                statusFilter === s.key
+                  ? "bg-brown text-ivory"
+                  : "bg-white text-brown/70 hover:bg-beige-light/60"
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+          <span className="ml-auto text-sm text-muted">
+            총 <span className="font-semibold text-brown">{sortedPrograms.length}</span>개
+          </span>
+        </div>
+        {sortedPrograms.length === 0 && (
+          <p className="rounded-card border border-line bg-white py-10 text-center text-sm text-muted shadow-card">
+            조건에 맞는 프로그램이 없습니다.
+          </p>
+        )}
         {sortedPrograms.map((p) => (
           <div
             key={p.id}

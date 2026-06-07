@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-06-07 (6차) — 배포 확정(workers.dev) + 관리자 탐색 UX 강화
+
+- **배포 확정**: Cloudflare Workers + OpenNext, 무료 `petit-elle.<계정>.workers.dev`.
+  유료 도메인 미구매 → 기존 `petit-elle.pages.dev` 중단/삭제 대상 명시. 정적 export 후퇴 금지.
+  - `DEPLOYMENT.md` 갱신, `CLOUDFLARE_ACTION_PLAN.md` 신규(대시보드 실행 순서), `TODO.md` 정리.
+- **관리자 UX(Mock)**: 예약(상태별 건수 배지·프로그램 필터·검색 지우기·합계·필터 초기화),
+  고객(세그먼트 필터·합계), 프로그램(검색·상태 필터·합계·빈 결과 안내).
+- **문서**: ADMIN_STATUS(Admin UI 92%→94%)/PROJECT_AUDIT 갱신.
+- **품질**: typecheck 0 / lint 0 / build 30 routes ✅ (동적 SSR 라우트 유지 확인).
+
+---
+
 ## 2026-06-07 (5차) — 완성도 감사 + 관리자 UX 개선
 
 - 감사 문서 8종 작성(PROJECT_STATUS/AUDIT, ADMIN/RESERVATION_STATUS, SEO/ACCESSIBILITY/REFACTOR_REPORT, OPEN_ITEMS).

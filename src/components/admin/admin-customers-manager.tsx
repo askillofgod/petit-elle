@@ -10,22 +10,37 @@ import { Badge } from "@/components/ui/badge";
 import type { Customer } from "@/types";
 
 type SortKey = "visits" | "recent" | "name";
+type Segment = "ALL" | "regular" | "normal";
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "visits", label: "예약 많은순" },
   { key: "recent", label: "최근 방문순" },
   { key: "name", label: "이름순" },
 ];
+const SEGMENTS: { key: Segment; label: string }[] = [
+  { key: "ALL", label: "전체" },
+  { key: "regular", label: "단골(5회+)" },
+  { key: "normal", label: "일반" },
+];
 
 export function AdminCustomersManager({ initial }: { initial: Customer[] }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("visits");
+  const [segment, setSegment] = useState<Segment>("ALL");
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = initial.filter(
-      (c) => !q || c.name.toLowerCase().includes(q) || c.phone.includes(q)
-    );
+    const filtered = initial.filter((c) => {
+      const matchQuery =
+        !q || c.name.toLowerCase().includes(q) || c.phone.includes(q);
+      const matchSegment =
+        segment === "ALL"
+          ? true
+          : segment === "regular"
+          ? c.reservationCount >= 5
+          : c.reservationCount < 5;
+      return matchQuery && matchSegment;
+    });
     const sorted = [...filtered].sort((a, b) => {
       if (sort === "name") return a.name.localeCompare(b.name, "ko");
       if (sort === "recent")
@@ -33,11 +48,11 @@ export function AdminCustomersManager({ initial }: { initial: Customer[] }) {
       return b.reservationCount - a.reservationCount;
     });
     return sorted;
-  }, [initial, query, sort]);
+  }, [initial, query, sort, segment]);
 
   return (
     <div>
-      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
           {SORTS.map((s) => (
             <button
@@ -64,6 +79,28 @@ export function AdminCustomersManager({ initial }: { initial: Customer[] }) {
             className="h-11 pl-10"
           />
         </div>
+      </div>
+
+      {/* Segment filter + result count */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {SEGMENTS.map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            onClick={() => setSegment(s.key)}
+            className={cn(
+              "rounded-pill px-3 py-1.5 text-xs font-medium transition-colors",
+              segment === s.key
+                ? "bg-brown text-ivory"
+                : "bg-white text-brown/70 hover:bg-beige-light/60"
+            )}
+          >
+            {s.label}
+          </button>
+        ))}
+        <span className="ml-auto text-sm text-muted">
+          총 <span className="font-semibold text-brown">{rows.length}</span>명
+        </span>
       </div>
 
       {/* Desktop table */}

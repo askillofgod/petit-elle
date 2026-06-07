@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Search, Check, X, CheckCheck, UserX, Ban, CheckCircle2 } from "lucide-react";
+import { Search, Check, X, CheckCheck, UserX, Ban, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ReservationStatusBadge } from "@/components/ui/reservation-status-badge";
@@ -26,8 +26,30 @@ export function AdminReservationsManager({
 }) {
   const [reservations, setReservations] = useState(initial);
   const [filter, setFilter] = useState<ReservationStatus | "ALL">("ALL");
+  const [programFilter, setProgramFilter] = useState<string>("ALL");
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+
+  const programOptions = useMemo(
+    () =>
+      Array.from(new Set(reservations.map((r) => r.programTitle))).sort((a, b) =>
+        a.localeCompare(b, "ko")
+      ),
+    [reservations]
+  );
+
+  const counts = useMemo(() => {
+    const matchStatus = (r: Reservation, value: ReservationStatus | "ALL") =>
+      value === "ALL"
+        ? true
+        : value === "CANCELLED"
+        ? r.status === "CANCELLED" || r.status === "REJECTED"
+        : r.status === value;
+    return FILTERS.reduce<Record<string, number>>((acc, f) => {
+      acc[f.value] = reservations.filter((r) => matchStatus(r, f.value)).length;
+      return acc;
+    }, {});
+  }, [reservations]);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -49,6 +71,8 @@ export function AdminReservationsManager({
           : filter === "CANCELLED"
           ? r.status === "CANCELLED" || r.status === "REJECTED"
           : r.status === filter;
+      const matchProgram =
+        programFilter === "ALL" || r.programTitle === programFilter;
       const q = query.trim().toLowerCase();
       const matchQuery =
         !q ||
@@ -56,9 +80,9 @@ export function AdminReservationsManager({
         r.customerPhone.includes(q) ||
         r.reservationNumber.toLowerCase().includes(q) ||
         r.programTitle.toLowerCase().includes(q);
-      return matchFilter && matchQuery;
+      return matchFilter && matchProgram && matchQuery;
     });
-  }, [reservations, filter, query]);
+  }, [reservations, filter, programFilter, query]);
 
   return (
     <div>
@@ -71,7 +95,7 @@ export function AdminReservationsManager({
       )}
 
       {/* Controls */}
-      <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
             <button
@@ -79,26 +103,77 @@ export function AdminReservationsManager({
               type="button"
               onClick={() => setFilter(f.value)}
               className={cn(
-                "rounded-pill px-4 py-2 text-sm font-medium transition-colors",
+                "inline-flex items-center gap-1.5 rounded-pill px-4 py-2 text-sm font-medium transition-colors",
                 filter === f.value
                   ? "bg-gold text-white"
                   : "bg-white text-brown/80 hover:bg-beige-light/60"
               )}
             >
               {f.label}
+              <span
+                className={cn(
+                  "rounded-pill px-1.5 text-xs tabular-nums",
+                  filter === f.value ? "bg-white/25 text-white" : "bg-beige-light/70 text-muted"
+                )}
+              >
+                {counts[f.value] ?? 0}
+              </span>
             </button>
           ))}
         </div>
-        <div className="relative md:w-72">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="고객명, 연락처, 예약번호 검색"
-            className="h-11 pl-10"
-          />
+        <div className="flex flex-col gap-2 sm:flex-row md:items-center">
+          <select
+            value={programFilter}
+            onChange={(e) => setProgramFilter(e.target.value)}
+            className="h-11 rounded-input border border-line bg-white px-3 text-sm text-brown focus:border-gold focus:outline-none"
+            aria-label="프로그램 필터"
+          >
+            <option value="ALL">전체 프로그램</option>
+            {programOptions.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <div className="relative sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="고객명, 연락처, 예약번호 검색"
+              className="h-11 pl-10 pr-9"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="검색어 지우기"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-brown"
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Result summary */}
+      <p className="mb-3 text-sm text-muted">
+        총 <span className="font-semibold text-brown">{filtered.length}</span>건
+        {(filter !== "ALL" || programFilter !== "ALL" || query.trim()) && (
+          <button
+            type="button"
+            onClick={() => {
+              setFilter("ALL");
+              setProgramFilter("ALL");
+              setQuery("");
+            }}
+            className="ml-2 text-gold hover:underline"
+          >
+            필터 초기화
+          </button>
+        )}
+      </p>
 
       {/* Desktop table */}
       <div className="hidden overflow-hidden rounded-card border border-line bg-white shadow-card lg:block">
