@@ -53,14 +53,17 @@
 - [x] DB 스키마 SQL(보강) + seed.sql + RLS 초안 + SUPABASE_SETUP_GUIDE.md
 
 ## Cloudflare 배포 — Workers + OpenNext ☁️ (코드 구성 완료, 대시보드 작업 남음)
-> SSR 앱이라 정적 배포 불가 → `@opennextjs/cloudflare`(Workers)로 전환 완료. 상세: DEPLOYMENT.md
+> SSR 앱이라 정적 배포 불가 → `@opennextjs/cloudflare`(Workers)로 전환 완료.
+> **최종 주소: 무료 `petit-elle.<계정-서브도메인>.workers.dev` (유료 도메인 없음).**
+> 실행 순서: CLOUDFLARE_ACTION_PLAN.md / 원리: DEPLOYMENT.md
 - [x] `@opennextjs/cloudflare` + `wrangler` 설치
 - [x] `open-next.config.ts` / `wrangler.jsonc`(nodejs_compat) / `next.config` dev 통합
 - [x] scripts `cf:build`/`preview`/`deploy` + `cf:build`·`preview` 로컬 검증(CSS 서빙 OK)
 - [ ] **CF 대시보드 작업(계정 필요)**: Workers→Connect to Git, Build `pnpm cf:build` / Deploy `npx wrangler deploy`
-- [ ] 환경변수(NEXT_PUBLIC_*) 등록 후 첫 배포 → `*.workers.dev` 확인
-- [ ] **기존 Pages 정적 프로젝트 중단/삭제**(옛 index.html 출처) + 커스텀 도메인 새 Worker 로 이전
+- [ ] 환경변수(NEXT_PUBLIC_*) 등록 후 첫 배포 → `petit-elle.<계정-서브도메인>.workers.dev` 확인
+- [ ] **기존 Pages 정적 프로젝트 `petit-elle.pages.dev` 중단/삭제**(옛 index.html 출처)
 - [ ] 배포 후 강력 새로고침 / 필요 시 CF 캐시 Purge
+- [ ] (확정 주소 기준) `src/constants/site.ts` url·OG/canonical 점검 (선택)
 
 ## 실제 Supabase 연결 시 작업 (URL/Key 확보 후) 🔌
 - [ ] Supabase 프로젝트 생성, .env.local 설정
