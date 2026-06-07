@@ -46,9 +46,23 @@
 > 순서 중요: **STEP A(Pages 연동 해제) → STEP B(Workers 연결·배포) → STEP C(검증)**.
 > A 를 먼저 해야 같은 repo 가 Pages·Workers 양쪽에서 동시 빌드되는 혼선을 막는다.
 
+> **현재 Pages 설정(2026-06-07 확인):** Git `askillofgod/petit-elle` ·
+> Build `npx @cloudflare/next-on-pages@1` · Output `.vercel/output/static` ·
+> Automatic deployments **Enabled**. → 즉 지금 push 마다 **next-on-pages 로 자동배포 중**.
+> A안에서는 이 설정을 **그대로 버리고**(아래 표 참고) Workers 로 새로 만든다.
+
+#### (구) Pages 설정 vs (신) Workers 설정 — 절대 혼동 금지
+| 항목 | (구) Pages = 폐기 | (신) Workers = 사용 |
+|---|---|---|
+| Build command | `npx @cloudflare/next-on-pages@1` | **`pnpm cf:build`** |
+| Deploy command | (Pages 자동) | **`npx wrangler deploy`** |
+| Build output dir | `.vercel/output/static` | **칸 없음** (wrangler.jsonc `main`/`assets` 사용) |
+| 어댑터 | `@cloudflare/next-on-pages` | `@opennextjs/cloudflare` |
+
 ### STEP A — 기존 Pages 프로젝트 `petit-elle` 의 **Git 연동 해제** (삭제 아님)
 
-목표: push 마다 도는 **깨진 Pages 자동배포를 멈춘다.** 프로젝트 자체는 남긴다.
+목표: push 마다 도는 **next-on-pages 자동배포를 멈춘다.** 프로젝트/마지막 배포본은 남긴다.
+(해제는 자동빌드만 끊으며, 떠 있는 `petit-elle.pages.dev` 는 즉시 내려가지 않는다.)
 
 1. 브라우저에서 **https://dash.cloudflare.com** 로그인.
 2. 좌측 메뉴 **Workers & Pages** 클릭.
@@ -74,12 +88,19 @@
    - 처음이면 **GitHub 앱 설치/권한 부여** 화면이 뜬다 → 계정 `askillofgod` 승인,
      저장소 접근에 **`petit-elle`** 포함.
 3. 저장소 **`askillofgod/petit-elle`**, 브랜치 **`main`** 선택.
-4. 프로젝트(Worker) 이름은 **`petit-elle`** 그대로 둔다. ← **최종 URL 의 앞부분**.
-5. **Build 설정** 입력:
+4. 프로젝트(Worker) 이름은 **`petit-elle`** 시도 → 받아들여지면 **최종 URL 앞부분**이 된다.
+   - ⚠️ **이름 충돌 주의:** 같은 이름의 **Pages 프로젝트가 아직 존재**한다. 통합 대시보드가
+     `"name already in use"` 로 막을 수 있다. 그 경우:
+     - (a) 폐기 대상 **Pages 프로젝트를 지금 삭제**해 이름을 비우거나, 또는
+     - (b) **다른 Worker 이름**(예: `petit-elle-app`) 사용 → URL 이 `petit-elle-app.<계정명>.workers.dev` 가 됨.
+     - ※ Pages 프로젝트는 **이름 변경 불가** → "Pages 이름만 바꾸기"는 옵션 아님.
+5. **Build 설정** 입력 (구 Pages 값 재사용 금지 — 위 대조표 참고):
    - **Build command**: `pnpm cf:build`
    - **Deploy command**: `npx wrangler deploy`
+   - **Build output directory**: 입력하지 않음(없음). `.vercel/output/static` 절대 입력 금지.
    - (Framework preset 칸이 있으면 **None/Next.js** 무엇이든 위 두 명령이 우선. Wrangler 가
      `wrangler.jsonc` 의 `main`/`assets`/compat flags 를 자동 적용한다.)
+   - (선택) Node 빌드 오류 시 **Variables** 에 `NODE_VERSION=20` 추가.
 6. **Environment variables**(선택): 지금은 Mock 기반이라 **없어도 배포된다.**
    필요 시 `NEXT_PUBLIC_SITE_URL` 등만 추가.
 7. **`Save and Deploy`** 클릭 → 첫 빌드/배포 진행(로그 확인).
