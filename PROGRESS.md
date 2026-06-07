@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-06-07 (5차) — 완성도 감사 + 관리자 UX 개선
+
+- 감사 문서 8종 작성(PROJECT_STATUS/AUDIT, ADMIN/RESERVATION_STATUS, SEO/ACCESSIBILITY/REFACTOR_REPORT, OPEN_ITEMS).
+  - 항목별 DONE/PARTIAL/TODO 분류, Admin UI 92%·Function 70%·DB 0% 평가.
+- 관리자 UX(Mock): 고객 검색/정렬, 프로그램 정렬, 슬롯 모두 가능/마감 토글.
+- 코드 정리: 미사용 import 2건 제거, END_BY_START 중복 통합 → unused 0.
+- 품질: typecheck 0 / lint 0 / build 30/30 / cf:build OK.
+- 발견(향후): 골드 대비 AA 미달(결정 필요), 설정 저장 액션 미배선, 고객 상세 페이지 부재.
+
+---
+
 ## 2026-06-07 (3차) — Mock 기반 V1 고도화 (Supabase 교체 용이 구조)
 
 ### 아키텍처

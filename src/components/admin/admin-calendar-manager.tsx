@@ -126,9 +126,35 @@ export function AdminCalendarManager() {
             </div>
           ) : (
             <div className="p-5">
-              <p className="mb-3 text-sm text-muted">
-                시간을 눌러 예약 가능(골드)/마감(회색)을 전환하세요.
-              </p>
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm text-muted">
+                  시간을 눌러 가능(골드)/마감(회색) 전환
+                </p>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSlots((prev) =>
+                        Object.fromEntries(Object.keys(prev).map((t) => [t, "AVAILABLE"]))
+                      )
+                    }
+                    className="rounded-pill bg-gold/10 px-3 py-1 text-xs font-medium text-gold hover:bg-gold/20"
+                  >
+                    모두 가능
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSlots((prev) =>
+                        Object.fromEntries(Object.keys(prev).map((t) => [t, "BLOCKED"]))
+                      )
+                    }
+                    className="rounded-pill bg-beige-light px-3 py-1 text-xs font-medium text-muted hover:bg-line"
+                  >
+                    모두 마감
+                  </button>
+                </div>
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 {sortedTimes.map((t) => (
                   <button

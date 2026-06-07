@@ -2,22 +2,12 @@
  * Slot Service Layer
  * 예약 가능 시간(reservation_slots) 관리. 현재 Mock.
  */
-import { SLOTS, DEFAULT_SLOT_TIMES } from "@/lib/mock/slots.mock";
+import { SLOTS, DEFAULT_SLOT_TIMES, SLOT_END_BY_START } from "@/lib/mock/slots.mock";
 import { mockStore } from "@/lib/mock/store";
 import type { ReservationSlot, SlotStatus } from "@/types";
 import type { CreateSlotInput } from "@/lib/validations/slot.schema";
 
 const store = mockStore<ReservationSlot[]>("slots", () => [...SLOTS]);
-
-const END_BY_START: Record<string, string> = {
-  "11:00": "12:00",
-  "12:30": "13:30",
-  "14:00": "15:00",
-  "15:30": "16:30",
-  "17:00": "18:00",
-  "18:30": "19:30",
-  "20:00": "21:00",
-};
 
 export async function listSlotsByDate(date: string): Promise<ReservationSlot[]> {
   return store
@@ -42,7 +32,7 @@ export async function createSlots(input: CreateSlotInput): Promise<ReservationSl
     id: `s-${input.date.slice(5).replace("-", "")}-${t.replace(":", "")}`,
     date: input.date,
     startTime: t,
-    endTime: END_BY_START[t] ?? t,
+    endTime: SLOT_END_BY_START[t] ?? t,
     maxCapacity: input.maxCapacity ?? 1,
     currentCount: 0,
     status: "AVAILABLE",

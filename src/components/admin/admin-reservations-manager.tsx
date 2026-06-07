@@ -7,7 +7,6 @@ import { ko } from "date-fns/locale";
 import { Search, Check, X, CheckCheck, UserX, Ban, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { ReservationStatusBadge } from "@/components/ui/reservation-status-badge";
 import type { Reservation, ReservationStatus } from "@/types";
 

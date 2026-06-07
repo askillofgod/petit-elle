@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### 완성도 감사 + UX 개선 — 2026-06-07 (5차 세션)
+#### Added (문서 8종)
+- `PROJECT_STATUS.md`, `PROJECT_AUDIT.md`, `ADMIN_STATUS.md`, `RESERVATION_STATUS.md`,
+  `SEO_REPORT.md`, `ACCESSIBILITY_REPORT.md`, `REFACTOR_REPORT.md`, `OPEN_ITEMS.md`
+#### Changed (관리자 UX, Mock 범위)
+- 고객관리: 검색 + 정렬(예약많은순/최근방문/이름) — `AdminCustomersManager`
+- 프로그램관리: 정렬(기본/가격↑↓/이름) 추가
+- 일정관리: "모두 가능/모두 마감" 빠른 토글 추가
+#### Fixed (코드 정리)
+- 미사용 import 제거(`Plus`, `Button`), 중복 `END_BY_START`→`SLOT_END_BY_START` 통합
+- noUnusedLocals/Parameters 0, ESLint 0, typecheck 0 확인
+
 ### Cloudflare 배포 전환 (OpenNext) — 2026-06-07 (4차 세션)
 #### 분석
 - 신고된 "CSS/Tailwind 전체 미적용"은 **로컬 정상**, **Cloudflare 정적 배포 오구성**이 원인 (BUG_REPORT 참고).

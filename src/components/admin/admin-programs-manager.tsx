@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Pencil, Plus, Loader2 } from "lucide-react";
+import { Pencil, Loader2 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
@@ -19,9 +19,29 @@ import {
 type FormValues = { title: string; shortDescription: string; durations: string; price: string };
 const EMPTY: FormValues = { title: "", shortDescription: "", durations: "", price: "" };
 
+type SortKey = "order" | "priceAsc" | "priceDesc" | "name";
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: "order", label: "기본순" },
+  { key: "priceAsc", label: "가격↑" },
+  { key: "priceDesc", label: "가격↓" },
+  { key: "name", label: "이름순" },
+];
+
 export function AdminProgramsManager({ initial }: { initial: Program[] }) {
   const router = useRouter();
   const [programs, setPrograms] = useState(initial);
+  const [sort, setSort] = useState<SortKey>("order");
+
+  const sortedPrograms = useMemo(() => {
+    const arr = [...programs];
+    arr.sort((a, b) => {
+      if (sort === "priceAsc") return a.price - b.price;
+      if (sort === "priceDesc") return b.price - a.price;
+      if (sort === "name") return a.title.localeCompare(b.title, "ko");
+      return a.displayOrder - b.displayOrder;
+    });
+    return arr;
+  }, [programs, sort]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormValues>(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -87,7 +107,25 @@ export function AdminProgramsManager({ initial }: { initial: Program[] }) {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       {/* List */}
       <div className="space-y-3">
-        {programs.map((p) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-muted">정렬</span>
+          {SORTS.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => setSort(s.key)}
+              className={cn(
+                "rounded-pill px-3 py-1.5 text-xs font-medium transition-colors",
+                sort === s.key
+                  ? "bg-gold text-white"
+                  : "bg-white text-brown/80 hover:bg-beige-light/60"
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        {sortedPrograms.map((p) => (
           <div
             key={p.id}
             className="flex items-center gap-4 rounded-card border border-line bg-white p-3 shadow-card"
