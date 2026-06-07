@@ -44,11 +44,14 @@ create table if not exists programs (
   title varchar(255) not null,
   short_description text,
   description text,
-  duration_minutes integer,
+  duration_minutes integer,           -- 기준(대표) 소요시간
+  duration_options integer[] default '{}', -- 선택 가능 소요시간 (도메인 Program.durations 매핑)
+  benefits text[] default '{}',        -- 효과/특징 (도메인 Program.benefits 매핑)
   price integer,
   thumbnail text,
   display_order integer default 0,
   is_active boolean default true,
+  is_signature boolean default false,  -- 대표 프로그램 여부
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

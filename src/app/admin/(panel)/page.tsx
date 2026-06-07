@@ -11,12 +11,14 @@ import {
 } from "lucide-react";
 import { AdminPageTitle, AdminStatCard, AdminCard } from "@/components/admin/admin-ui";
 import { ReservationStatusBadge } from "@/components/ui/reservation-status-badge";
-import { DASHBOARD_STATS, DUMMY_RESERVATIONS } from "@/lib/dummy-data";
+import { getDashboardStats, listReservations } from "@/services/reservation.service";
 
-export default function AdminDashboardPage() {
-  const recent = [...DUMMY_RESERVATIONS]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 6);
+export default async function AdminDashboardPage() {
+  const [stats, reservations] = await Promise.all([
+    getDashboardStats(),
+    listReservations(),
+  ]);
+  const recent = reservations.slice(0, 6);
 
   return (
     <>
@@ -27,11 +29,11 @@ export default function AdminDashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <AdminStatCard label="오늘 예약" value={DASHBOARD_STATS.todayReservations} icon={CalendarCheck} accent="gold" />
-        <AdminStatCard label="승인 대기" value={DASHBOARD_STATS.pending} icon={Clock3} accent="warning" />
-        <AdminStatCard label="예약 완료" value={DASHBOARD_STATS.completed} icon={CheckCircle2} accent="success" />
-        <AdminStatCard label="신규 고객" value={DASHBOARD_STATS.newCustomers} icon={UserPlus} accent="gold" />
-        <AdminStatCard label="노쇼" value={DASHBOARD_STATS.noShow} icon={UserX} accent="muted" />
+        <AdminStatCard label="오늘 예약" value={stats.todayReservations} icon={CalendarCheck} accent="gold" />
+        <AdminStatCard label="승인 대기" value={stats.pending} icon={Clock3} accent="warning" />
+        <AdminStatCard label="예약 완료" value={stats.completed} icon={CheckCircle2} accent="success" />
+        <AdminStatCard label="신규 고객" value={stats.newCustomers} icon={UserPlus} accent="gold" />
+        <AdminStatCard label="노쇼" value={stats.noShow} icon={UserX} accent="muted" />
       </div>
 
       {/* Recent reservations */}

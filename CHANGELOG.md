@@ -4,6 +4,26 @@
 
 ## [Unreleased]
 
+### Mock 기반 V1 고도화 — 2026-06-07 (3차 세션)
+#### Added
+- **Service Layer 6종**: `program`/`reservation`/`customer`/`admin`/`slot`/`settings` (Mock 반환, Supabase 시그니처 설계)
+- **Server Actions**: createReservation / approve·reject·cancel·complete·noShow / createSlot·setHoliday / createProgram·updateProgram·setProgramActive (zod 검증 + `ActionResult`)
+- **zod 검증 스키마**: 예약폼/예약생성/프로그램폼/고객프로필/슬롯 (`src/lib/validations/*`)
+- Mock 데이터 재구성 `src/lib/mock/*` (programs/reservations/customers/slots/notices/settings/admins) + `mockStore`(globalThis 공유)
+- 타입 확장: `Admin`/`Notice`/`SiteSettings`/`BusinessHour`/`DashboardStats`/`ActionResult`, 슬롯 필드 확장
+- `supabase/seed.sql`, `SUPABASE_SETUP_GUIDE.md`
+#### Changed
+- 예약 플로우: 수동검증 → **zod 검증** + `createReservationAction` 호출(로딩/에러 UI), 완료 페이지에 예약번호 표시
+- 관리자: 예약 상세 액션바·프로그램 관리·일정(슬롯) 관리·설정 저장을 **서버 액션/검증**과 연결, UX 보강
+- 마이페이지 프로필을 zod 검증 클라이언트 폼으로 전환
+- 관리자/마이페이지 서버 컴포넌트를 **Service Layer 경유**로 마이그레이션
+- `schema.sql` programs: `duration_options`/`benefits`/`is_signature` 컬럼 추가
+- `.env.example` 섹션화 정리
+#### Removed
+- 미사용 shim `lib/dummy-data.ts` (서비스로 대체)
+#### Verified
+- typecheck 0 / ESLint 0 / build 성공 / 예약 생성→관리자 반영 E2E(CDP) 통과
+
 ### 검수 & 수정 — 2026-06-07 (2차 세션)
 #### Added
 - `BUG_REPORT.md` 전체 검수 보고서 (Critical/High/Medium/Low)

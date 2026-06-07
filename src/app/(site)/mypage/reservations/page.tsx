@@ -1,12 +1,12 @@
 import { CalendarHeart } from "lucide-react";
 import { EmptyState } from "@/components/ui/states";
 import { ReservationListCard } from "@/components/reservation/reservation-list-card";
-import { MY_RESERVATIONS } from "@/lib/dummy-data";
+import { listMyReservations } from "@/services/reservation.service";
 
 export const metadata = { title: "내 예약" };
 
-export default function MyReservationsPage() {
-  const reservations = MY_RESERVATIONS;
+export default async function MyReservationsPage() {
+  const reservations = await listMyReservations();
 
   return (
     <div>

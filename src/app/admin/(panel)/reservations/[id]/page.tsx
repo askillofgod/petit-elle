@@ -5,7 +5,7 @@ import { ko } from "date-fns/locale";
 import { ChevronLeft } from "lucide-react";
 import { AdminCard } from "@/components/admin/admin-ui";
 import { AdminReservationActions } from "@/components/admin/admin-reservation-actions";
-import { DUMMY_RESERVATIONS } from "@/lib/dummy-data";
+import { getReservation } from "@/services/reservation.service";
 
 export const metadata = { title: "예약 상세" };
 
@@ -15,7 +15,7 @@ export default async function AdminReservationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const r = DUMMY_RESERVATIONS.find((x) => x.id === id);
+  const r = await getReservation(id);
   if (!r) notFound();
 
   const prettyDate = format(new Date(r.date), "yyyy년 M월 d일 (EEE)", { locale: ko });
@@ -49,7 +49,7 @@ export default async function AdminReservationDetailPage({
           </AdminCard>
         </div>
         <div>
-          <AdminReservationActions initialStatus={r.status} />
+          <AdminReservationActions id={r.id} initialStatus={r.status} />
         </div>
       </div>
     </>

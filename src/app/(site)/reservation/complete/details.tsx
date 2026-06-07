@@ -6,6 +6,7 @@ import { ko } from "date-fns/locale";
 
 export function ReservationCompleteDetails() {
   const params = useSearchParams();
+  const reservationNo = params.get("no");
   const program = params.get("program");
   const date = params.get("date");
   const time = params.get("time");
@@ -19,6 +20,7 @@ export function ReservationCompleteDetails() {
 
   return (
     <dl className="mt-6 space-y-2.5 rounded-input bg-beige-light/40 p-5 text-left text-sm">
+      {reservationNo && <Row label="예약번호" value={reservationNo} />}
       {program && <Row label="프로그램" value={program} />}
       {prettyDate && <Row label="예약 날짜" value={prettyDate} />}
       {time && <Row label="예약 시간" value={time} />}

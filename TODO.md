@@ -46,9 +46,20 @@
 - [x] /admin/calendar / customers / programs / notices / settings
 
 ## P2 — Supabase 연동 준비 (4순위) ✅
-- [x] Service Layer 인터페이스 (program/reservation)
-- [x] Supabase client 스텁 + .env.example
-- [x] DB 스키마 SQL + RLS 초안
+- [x] Service Layer 6종 (program/reservation/customer/admin/slot/settings)
+- [x] Server Actions (예약/슬롯/프로그램) + zod 검증 스키마
+- [x] Mock 재구성(src/lib/mock/*) + globalThis 공유 스토어
+- [x] Supabase client 스텁 + .env.example 정리
+- [x] DB 스키마 SQL(보강) + seed.sql + RLS 초안 + SUPABASE_SETUP_GUIDE.md
+
+## 실제 Supabase 연결 시 작업 (URL/Key 확보 후) 🔌
+- [ ] Supabase 프로젝트 생성, .env.local 설정
+- [ ] schema.sql → seed.sql → rls.sql 적용
+- [ ] `@supabase/supabase-js`, `@supabase/ssr` 설치 + client 구현 활성화
+- [ ] services/* 내부 Mock → Supabase 쿼리 교체 (시그니처 유지), mockStore 제거
+- [ ] 카카오 OAuth(Supabase Auth) + 관리자 인증 + `middleware.ts`(/admin 보호)
+- [ ] 예약 생성 트랜잭션(RPC) + 슬롯 동시성(중복 예약 방지)
+- [ ] (선택) Realtime 관리자 예약 목록
 
 ## P2 — SEO (5순위) ✅
 - [x] Metadata API (페이지별 title/description/OG/canonical)

@@ -5,7 +5,7 @@ import { ko } from "date-fns/locale";
 import { ChevronLeft } from "lucide-react";
 import { ReservationStatusBadge } from "@/components/ui/reservation-status-badge";
 import { Button } from "@/components/ui/button";
-import { DUMMY_RESERVATIONS } from "@/lib/dummy-data";
+import { getReservation } from "@/services/reservation.service";
 
 export const metadata = { title: "예약 상세" };
 
@@ -15,7 +15,7 @@ export default async function MyReservationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const reservation = DUMMY_RESERVATIONS.find((r) => r.id === id);
+  const reservation = await getReservation(id);
   if (!reservation) notFound();
 
   const prettyDate = format(new Date(reservation.date), "yyyy년 M월 d일 (EEE)", {

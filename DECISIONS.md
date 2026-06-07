@@ -67,6 +67,22 @@
 - **결정:** 모바일 반응형은 구형 `chrome --headless --screenshot`(최소 창 ~500px 강제) 대신 **Chrome DevTools Protocol로 디바이스 메트릭(390px)을 오버라이드**하여 `scrollWidth/offenders`를 실측.
 - **이유:** 구형 headless 스크린샷은 작은 폭을 클리핑해 가짜 오버플로우를 유발. CDP 실측이 정확.
 
+### D-018. Mock ↔ DB 정합 & 매핑 전략
+- **결정:** 앱은 camelCase 도메인 타입 사용, 서비스 레이어가 snake_case DB row ↔ 도메인 매핑 담당. `Program.durations`↔`duration_options`, `benefits`/`is_signature` 컬럼 schema 추가. `Reservation`/`Customer`는 조인·집계 뷰 모델로 명시.
+- **이유:** UI를 건드리지 않고 서비스 내부만 교체하면 Supabase 전환 완료되도록.
+
+### D-019. Server Actions + zod
+- **결정:** 모든 변이는 `src/app/actions/*`("use server") → zod 검증 → 서비스 호출 → `ActionResult<T>` 반환. 폼 검증은 동일 zod 스키마(`src/lib/validations/*`)를 클라이언트/서버 공용.
+- **이유:** 검증·에러 처리 일원화, 실제 연동 시 액션 시그니처 유지한 채 서비스 내부만 교체.
+
+### D-020. Mock 공유 스토어 (globalThis)
+- **결정:** Mock 변이 상태를 `globalThis.__PE_MOCK_STORE__`에 보관(`src/lib/mock/store.ts`).
+- **이유:** Next dev에서 라우트별 서버 번들이 모듈 인스턴스를 분리 → 일반 모듈 변수는 라우트 간 공유 안 됨. 예약 생성이 관리자 목록에 즉시 반영되도록. **Mock 한정**, Supabase 연동 후 제거.
+
+### D-021. 데이터 접근 경로 (constants/programs shim)
+- **결정:** 클라이언트 컴포넌트의 동기 import 를 위해 `constants/programs.ts`는 `lib/mock/programs.mock`을 재export하는 shim 유지. 서버는 `program.service` 사용 권장.
+- **이유:** 클라이언트에서 async 서비스 호출은 부적합 → 정적 프로그램 데이터는 동기 import 허용.
+
 ### D-017. GitHub 백업 정책 (사용자 요청)
 - **결정:** 기능 단위/30분 이상 작업/빌드 성공 시 커밋, 푸시 순서는 `typecheck → build → git add → commit → push`. 커밋 메시지는 Conventional Commits(`feat:`/`fix:`/`refactor:` 등).
 - **상태:** GitHub 원격 연결 확인됨 — `origin = https://github.com/askillofgod/petit-elle.git`, 브랜치 `main`, 인증 정상(ls-remote 성공).

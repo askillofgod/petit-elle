@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { ChevronLeft, Clock, Check } from "lucide-react";
+import { ChevronLeft, Clock, Check, Loader2 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import { ReservationStepper } from "@/components/reservation/reservation-stepper
 import { ReservationCalendar } from "@/components/reservation/reservation-calendar";
 import { TimeSlotSelector } from "@/components/reservation/time-slot-selector";
 import { PROGRAMS } from "@/constants/programs";
+import { reservationFormSchema } from "@/lib/validations/reservation.schema";
+import { createReservationAction } from "@/app/actions/reservation.actions";
 
 type FormState = {
   name: string;
@@ -37,6 +39,8 @@ export function ReservationFlow() {
     agree: false,
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const program = useMemo(
     () => PROGRAMS.find((p) => p.slug === slug) ?? null,
@@ -45,26 +49,48 @@ export function ReservationFlow() {
 
   const go = (n: number) => setStep(n);
 
+  // zod 기반 폼 검증 (lib/validations/reservation.schema)
   function validateForm() {
+    const result = reservationFormSchema.safeParse(form);
+    if (result.success) {
+      setErrors({});
+      return true;
+    }
     const e: Partial<Record<keyof FormState, string>> = {};
-    if (!form.name.trim()) e.name = "이름을 입력해주세요.";
-    if (!form.phone.trim()) e.phone = "연락처를 입력해주세요.";
-    else if (!/^[0-9-]{9,13}$/.test(form.phone.trim()))
-      e.phone = "올바른 연락처를 입력해주세요.";
-    if (!form.agree) e.agree = "개인정보 수집·이용에 동의해주세요.";
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as keyof FormState | undefined;
+      if (key && !e[key]) e[key] = issue.message;
+    }
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return false;
   }
 
+  // 서버 액션 호출 → 성공 시 완료 페이지로 이동 (실제 Supabase 연동 시 액션 내부만 교체됨)
   function submit() {
     if (!program || !date || !time) return;
-    const params = new URLSearchParams({
-      program: program.title,
-      date,
-      time,
-      name: form.name,
+    setSubmitError(null);
+    startTransition(async () => {
+      const res = await createReservationAction({
+        programId: program.id,
+        date,
+        time,
+        customerName: form.name,
+        customerPhone: form.phone,
+        requestNote: form.note || undefined,
+      });
+      if (!res.ok) {
+        setSubmitError(res.error);
+        return;
+      }
+      const params = new URLSearchParams({
+        no: res.data.reservationNumber,
+        program: program.title,
+        date,
+        time,
+        name: form.name,
+      });
+      router.push(`/reservation/complete?${params.toString()}`);
     });
-    router.push(`/reservation/complete?${params.toString()}`);
   }
 
   const prettyDate = date
@@ -259,10 +285,17 @@ export function ReservationFlow() {
               예약 신청 후 관리자의 확인을 거쳐 예약이 확정됩니다. 확정 결과는
               연락처로 안내드립니다.
             </p>
+            {submitError && (
+              <p className="mt-3 rounded-input bg-error/10 px-4 py-3 text-sm text-error">
+                {submitError}
+              </p>
+            )}
             <NavButtons
               onBack={() => go(4)}
               onNext={submit}
-              nextLabel="예약 신청하기"
+              nextLabel={isPending ? "신청 중..." : "예약 신청하기"}
+              nextDisabled={isPending}
+              loading={isPending}
             />
           </StepWrap>
         )}
@@ -295,17 +328,19 @@ function NavButtons({
   nextDisabled,
   nextLabel = "다음",
   backHidden,
+  loading,
 }: {
   onBack?: () => void;
   onNext: () => void;
   nextDisabled?: boolean;
   nextLabel?: string;
   backHidden?: boolean;
+  loading?: boolean;
 }) {
   return (
     <div className="mt-8 flex gap-3">
       {!backHidden && (
-        <Button variant="secondary" size="lg" onClick={onBack}>
+        <Button variant="secondary" size="lg" onClick={onBack} disabled={loading}>
           <ChevronLeft className="h-4 w-4" /> 이전
         </Button>
       )}
@@ -315,6 +350,7 @@ function NavButtons({
         disabled={nextDisabled}
         className="flex-1"
       >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         {nextLabel}
       </Button>
     </div>

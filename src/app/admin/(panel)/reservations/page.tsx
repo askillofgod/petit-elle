@@ -1,13 +1,11 @@
 import { AdminPageTitle } from "@/components/admin/admin-ui";
 import { AdminReservationsManager } from "@/components/admin/admin-reservations-manager";
-import { DUMMY_RESERVATIONS } from "@/lib/dummy-data";
+import { listReservations } from "@/services/reservation.service";
 
 export const metadata = { title: "예약 관리" };
 
-export default function AdminReservationsPage() {
-  const sorted = [...DUMMY_RESERVATIONS].sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt)
-  );
+export default async function AdminReservationsPage() {
+  const sorted = await listReservations();
   return (
     <>
       <AdminPageTitle

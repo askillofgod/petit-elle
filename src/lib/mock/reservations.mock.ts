@@ -1,12 +1,14 @@
-import type { Customer, Reservation } from "@/types";
+import type { Reservation } from "@/types";
 
-// 관리자/마이페이지용 더미 예약 데이터 (Supabase 연동 전)
-export const DUMMY_RESERVATIONS: Reservation[] = [
+// 예약 Mock (Supabase 연동 전). date/time/programTitle 은 slot/program 조인 결과를 가정.
+export const RESERVATIONS: Reservation[] = [
   {
     id: "r1",
     reservationNumber: "PE202606070001",
+    userId: "c1",
     programId: "prog-signature",
     programTitle: "시그니처 케어",
+    slotId: "s-0609-1400",
     date: "2026-06-09",
     time: "14:00",
     customerName: "김서연",
@@ -18,8 +20,10 @@ export const DUMMY_RESERVATIONS: Reservation[] = [
   {
     id: "r2",
     reservationNumber: "PE202606070002",
+    userId: "c2",
     programId: "prog-aroma",
     programTitle: "아로마 테라피",
+    slotId: "s-0609-1700",
     date: "2026-06-09",
     time: "17:00",
     customerName: "이지은",
@@ -30,45 +34,56 @@ export const DUMMY_RESERVATIONS: Reservation[] = [
   {
     id: "r3",
     reservationNumber: "PE202606080003",
+    userId: "c3",
     programId: "prog-relaxing",
     programTitle: "릴렉싱 바디 케어",
+    slotId: "s-0608-1100",
     date: "2026-06-08",
     time: "11:00",
     customerName: "박민지",
     customerPhone: "010-3456-7890",
     requestNote: "처음 방문합니다.",
     status: "APPROVED",
+    approvedAt: "2026-06-06T16:00:00+09:00",
     createdAt: "2026-06-06T15:20:00+09:00",
   },
   {
     id: "r4",
     reservationNumber: "PE202606080004",
+    userId: "c4",
     programId: "prog-face",
     programTitle: "페이스 케어",
+    slotId: "s-0608-1530",
     date: "2026-06-08",
     time: "15:30",
     customerName: "최유진",
     customerPhone: "010-4567-8901",
     status: "APPROVED",
+    approvedAt: "2026-06-06T18:30:00+09:00",
     createdAt: "2026-06-06T18:05:00+09:00",
   },
   {
     id: "r5",
     reservationNumber: "PE202606050005",
+    userId: "c5",
     programId: "prog-signature",
     programTitle: "시그니처 케어",
+    slotId: "s-0605-1830",
     date: "2026-06-05",
     time: "18:30",
     customerName: "정하나",
     customerPhone: "010-5678-9012",
     status: "COMPLETED",
+    completedAt: "2026-06-05T20:40:00+09:00",
     createdAt: "2026-06-03T11:00:00+09:00",
   },
   {
     id: "r6",
     reservationNumber: "PE202606050006",
+    userId: "c1",
     programId: "prog-relaxing",
     programTitle: "릴렉싱 바디 케어",
+    slotId: "s-0605-2000",
     date: "2026-06-05",
     time: "20:00",
     customerName: "한소희",
@@ -79,73 +94,19 @@ export const DUMMY_RESERVATIONS: Reservation[] = [
   {
     id: "r7",
     reservationNumber: "PE202606040007",
+    userId: "c2",
     programId: "prog-aroma",
     programTitle: "아로마 테라피",
+    slotId: "s-0604-1230",
     date: "2026-06-04",
     time: "12:30",
     customerName: "윤서아",
     customerPhone: "010-7890-1234",
     status: "CANCELLED",
+    cancelledAt: "2026-06-03T20:00:00+09:00",
     createdAt: "2026-06-02T14:10:00+09:00",
   },
 ];
 
-// 마이페이지에서 "내 예약"으로 보여줄 현재 로그인 사용자(더미) 예약
-export const MY_RESERVATIONS: Reservation[] = [
-  DUMMY_RESERVATIONS[0],
-  DUMMY_RESERVATIONS[4],
-];
-
-export const DUMMY_CUSTOMERS: Customer[] = [
-  {
-    id: "c1",
-    name: "김서연",
-    phone: "010-1234-5678",
-    email: "seoyeon@example.com",
-    reservationCount: 5,
-    lastVisitAt: "2026-06-07",
-    createdAt: "2025-11-02",
-  },
-  {
-    id: "c2",
-    name: "이지은",
-    phone: "010-2345-6789",
-    reservationCount: 3,
-    lastVisitAt: "2026-05-28",
-    createdAt: "2025-12-15",
-  },
-  {
-    id: "c3",
-    name: "박민지",
-    phone: "010-3456-7890",
-    reservationCount: 1,
-    lastVisitAt: "2026-06-08",
-    createdAt: "2026-06-06",
-  },
-  {
-    id: "c4",
-    name: "최유진",
-    phone: "010-4567-8901",
-    email: "yujin@example.com",
-    reservationCount: 8,
-    lastVisitAt: "2026-06-08",
-    createdAt: "2025-08-20",
-  },
-  {
-    id: "c5",
-    name: "정하나",
-    phone: "010-5678-9012",
-    reservationCount: 2,
-    lastVisitAt: "2026-06-05",
-    createdAt: "2026-03-11",
-  },
-];
-
-// 대시보드 통계 (더미) — 10_ADMIN_SPEC.md 6번
-export const DASHBOARD_STATS = {
-  todayReservations: 8,
-  pending: 3,
-  completed: 5,
-  newCustomers: 2,
-  noShow: 0,
-};
+// 마이페이지(로그인 사용자=c1 가정) "내 예약"
+export const MY_USER_ID = "c1";

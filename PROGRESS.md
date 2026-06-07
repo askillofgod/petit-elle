@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-06-07 (3차) — Mock 기반 V1 고도화 (Supabase 교체 용이 구조)
+
+### 아키텍처
+- UI → Server Action(zod 검증) → Service Layer → Mock(globalThis 공유) 구조 확립.
+- 데이터 교체 지점은 `src/services/*` 내부뿐. UI/액션/검증/타입 불변.
+
+### 구현
+- Service Layer 6종 + Server Actions(예약/슬롯/프로그램) + zod 검증 스키마 작성.
+- Mock 재구성(`src/lib/mock/*`) + 타입 확장(Admin/Notice/SiteSettings/BusinessHour/ActionResult 등).
+- 예약 플로우 zod + createReservationAction 연결(로딩/에러), 완료페이지 예약번호 표시.
+- 관리자 상세 액션바·프로그램·일정·설정 + 마이페이지 프로필을 액션/검증과 연결.
+- 관리자/마이페이지 페이지를 서비스 경유로 마이그레이션.
+- supabase: schema 보강 + seed.sql + SUPABASE_SETUP_GUIDE.md + .env.example 정리.
+
+### 검증
+- typecheck 0 / ESLint 0 / build 성공.
+- **E2E(CDP)**: 예약 생성(서버액션)→완료 페이지(예약번호 PE…)→관리자 목록 반영 확인.
+
+---
+
 ## 2026-06-07 (2차) — 전체 검수 + GitHub 백업 정책
 
 ### 전체 검수 완료 → `BUG_REPORT.md` 작성

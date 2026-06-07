@@ -2,11 +2,12 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { AdminPageTitle, AdminCard } from "@/components/admin/admin-ui";
 import { Badge } from "@/components/ui/badge";
-import { DUMMY_CUSTOMERS } from "@/lib/dummy-data";
+import { listCustomers } from "@/services/customer.service";
 
 export const metadata = { title: "고객 관리" };
 
-export default function AdminCustomersPage() {
+export default async function AdminCustomersPage() {
+  const customers = await listCustomers();
   return (
     <>
       <AdminPageTitle
@@ -28,7 +29,7 @@ export default function AdminCustomersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {DUMMY_CUSTOMERS.map((c) => (
+            {customers.map((c) => (
               <tr key={c.id} className="hover:bg-beige-light/20">
                 <td className="px-4 py-3 font-medium text-brown">{c.name}</td>
                 <td className="px-4 py-3 text-muted">{c.phone}</td>
@@ -56,7 +57,7 @@ export default function AdminCustomersPage() {
 
       {/* Mobile cards */}
       <div className="space-y-3 lg:hidden">
-        {DUMMY_CUSTOMERS.map((c) => (
+        {customers.map((c) => (
           <div key={c.id} className="rounded-card border border-line bg-white p-4 shadow-card">
             <div className="flex items-center justify-between">
               <p className="font-semibold text-brown">{c.name}</p>
