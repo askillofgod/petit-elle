@@ -113,8 +113,24 @@ pnpm deploy
 ## 5. GitHub 연결 시 주의사항
 - `main` 브랜치 푸시마다 배포되도록 Workers Builds 연결.
 - 빌드에 `pnpm` 사용 → CI 의 패키지 매니저를 pnpm 으로 인식하는지 확인(`pnpm-lock.yaml` 존재).
-- `pnpm-workspace.yaml` 의 `allowBuilds`(esbuild/workerd/sharp) 가 빌드 스크립트 실행을 허용.
+- `pnpm-workspace.yaml` 의 `allowBuilds`(esbuild/workerd/sharp/unrs-resolver) 가 빌드 스크립트 실행을 허용.
 - `.env.local`/Secrets 는 커밋 금지. 환경변수는 대시보드에서 주입.
+
+### 5.1 빌드 실패 트러블슈팅 — `ERR ... packages field missing or empty` (해결됨 2026-06-07)
+**증상:** Cloudflare 첫 배포 로그에서 `pnpm install --frozen-lockfile` →
+`ERROR packages field missing or empty` → 의존성 설치 실패. (로컬은 정상)
+
+**원인:** `pnpm-workspace.yaml` 의 빌드 허용 필드 `allowBuilds`(맵 형식)는 **pnpm 11 전용**이다.
+Cloudflare 빌드 환경이 **기본(구버전) pnpm** 을 쓰면 그 파일을 "워크스페이스"로 보고
+`packages:` 필드를 요구해 실패한다. → **로컬 pnpm(11.x) 과 CI pnpm 버전 차이**가 진짜 원인.
+
+**해결:** `package.json` 에 **`"packageManager": "pnpm@11.5.2"`** 추가.
+→ Cloudflare 가 corepack 으로 **로컬과 동일한 pnpm 11.5.2** 를 사용 → `allowBuilds` 인식 +
+`packages` 필드 불필요. (코드/`pnpm-workspace.yaml` 변경 없음. 검증: fresh `node_modules` +
+`pnpm install --frozen-lockfile` EXIT 0, `pnpm cf:build` EXIT 0.)
+
+> 만약 그래도 동일 오류면(드물게 corepack 미동작): 대시보드 **Settings → Build → 빌드 시스템/pnpm
+> 버전을 명시(예: pnpm 11)** 하거나, Build command 앞에 `corepack enable &&` 를 붙인다.
 
 ---
 

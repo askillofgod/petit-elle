@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Petit Elle — 여성 전용 프리미엄 힐링 스튜디오 예약 플랫폼",
+  "packageManager": "pnpm@11.5.2",
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 8080",
     "build": "next build",
